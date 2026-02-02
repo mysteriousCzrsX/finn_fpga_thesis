@@ -25,5 +25,22 @@
 
 
 \section{Wstęp i cel pracy}
+Sztuczna inteligencja jest jedną z najszybciej rozwijających się dziedzin współczesnej nauki oraz przemysłu. Dzięki jej rozwojowi możliwe stały się rzeczy takie jak generacja realistycznych obrazów na podstawie tekstu lub 
+szeroki dostęp do asystentów tekstowych - dużych modeli językowych. Algorytmy sztucznej inteligencji znajdują szerokie zastosowanie również w miejscach gdzie wymagane jest przetwarzanie danych o skomplikowanych do modelowania
+zależnościach lub danych charakteryzujących się duża ilością szumu mogącego wynikać z zmiennego środowiska. Przykładem takiej dziedziny są pojazdy autonomiczne które często polegają na algorytmach sztucznej inteligencji 
+w celach klasyfikacji danych środowiskowych (np. rozpoznawanie obiektów z kamer) oraz do podejmowania decyzji na podstawie danych z czujników. Istnieje wiele algorytmów sztucznej inteligencji, algorytmem szeroko stosowanym 
+w szczególnie w modelach klasyfikujących sygnały oraz obrazy są splotowe sieci neuronowe. 
+\par
+Pomimo znacznych postępów w dziedzinie sztucznej inteligencji jednym z głównych ograniczeń jej rozwoju pozostaje znaczne zapotrzebowanie 
+algorytmów na moc obliczeniową. Duże zapotrzebowanie na moc obliczeniową wynika między innymi z konstrukcji sieci neuronowych. Składają się one z wielu połączonych ze sobą warstw neuronów, w celu uzyskania odpowiedzi sieci neuronowej
+na podane pobudzenie należy wykonywać obliczenia kolejno dla każdej warstwy. Obliczenia dla neuronów znajdujących się w jednej warstwie mogą być wykonywane równolegle. Z tego względu sieci algorytmy sieci neuronowych są 
+przetwarzane na układach GPU które choć pierwotnie projektowane do obliczeń związanych z grafiką 3D posiadają wiele jednostek obliczeniowych zdolnych do działania równolegle. Podejście to ma niestety duża wadę - układy GPU zużywają
+znaczne ilości energii elektrycznej w czasie pracy. Stanowi to dużą przeszkodę przy implementacji algorytmów sztucznej inteligencji w systemach gdzie liczy się oszczędność energii np. pojazdy autonomiczne o zasilaniu bateryjnym.
+Jednym z rozwiązań tego problemu jest implementacja dedykowanego akceleratora dla wykorzystywanej sieci w układzie cyfrowym ASIC. Główną wadą tego rozwiązania jest brak możliwości szybkiej oraz taniej możliwości modyfikacji akceleratora.
+W związku z tym tracimy jedną z zalet stosowania sieci neuronowej - możliwości ponownego trenowania sieci na zmodyfikowanym zakresie danych w celu rozszerzenia lub poprawy jej funkcjonowania. 
+\par
+Celem pracy jest zbadanie możliwości implementacji splotowych sieci neuronowych w układach FPGA. Układy te pozwalają na implementacje zróżnicowanych funkcji cyfrowych oraz posiadają możliwość zmiany zaimplementowanej funkcji poprzez
+przeprogramowanie układu. Współczesne układy FPGA składają się z dużej ilości bloków logicznych co pozwala na łatwą implementację algorytmów działających równolegle. Te właściwości powodują, że układy tej klasy mają szansę znaleźć
+zastosowanie w przypadku implementacji sieci neuronowych w systemach wbudowanych.
 
 \end{document}
