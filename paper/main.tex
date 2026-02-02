@@ -1,0 +1,77 @@
+\documentclass[twoside]{article}
+\usepackage{graphicx, float, polski, csquotes, pdfpages, chngcntr, pgfplots, caption, amsmath, wrapfig}
+\usepackage[a4paper, top=2.5cm, bottom=2.5cm, inner=3.5cm, outer=2.5cm]{geometry}
+\usepackage[hyphens]{url}
+\usepackage[pdfusetitle]{hyperref}
+\usepackage[backend=biber, sorting=none]{biblatex}
+\usepackage[polish, english]{babel}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{multirow}
+
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+
+\lstdefinestyle{mystyle}{
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{magenta},
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+
+\lstset{style=mystyle}
+
+\addbibresource{sources.bib}
+% \appto{\bibsetup}{\raggedright}
+% \appto{\bibsetup}{\sloppy}
+\hypersetup{hidelinks}
+\counterwithin{figure}{section}
+\renewcommand{\thefigure}{\thesection.\arabic{figure}}
+\numberwithin{equation}{section}
+\linespread{1.3}
+
+\usepackage{subfiles}
+
+\title{Potokowa implementacja splotowej sieci neuronowej w urządzeniu brzegowym Edge AI}
+\author{Cezary Wieczorkowski}
+
+\begin{document}
+\selectlanguage{polish}
+\includepdf[pages=1]{title_page.pdf}
+\thispagestyle{empty}
+\cleardoublepage
+
+\subfile{abstract}
+\cleardoublepage
+
+\tableofcontents
+\newpage
+\subfile{skroty}
+\cleardoublepage
+
+\subfile{wstep/wstep}
+\clearpage
+\subfile{podsumowanie/podsumowanie}
+
+\clearpage
+\printbibliography
+\addcontentsline{toc}{section}{Bibliografia}
+\newpage
+\listoffigures
+\addcontentsline{toc}{section}{Spis rysunków}
+\newpage
+\listoftables
+\addcontentsline{toc}{section}{Spis tabel}
+\end{document}
