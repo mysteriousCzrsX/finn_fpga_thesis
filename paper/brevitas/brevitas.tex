@@ -98,5 +98,82 @@ przeprowadzić już na etapie treningu co nazywamy Quantization aware training. 
 Biblioteka ta jest oparta na popularnym frameworku uczenia maszynowego PyTorch \cite{NEURIPS2019_9015}. Posiadając kod sieci używającej PyTorch proces kwantyzacji podczas treningu polega na podmianie instancji klasycznych
 warstw z biblioteki PyTorch na ich skwantyzowane implementacje z biblioteki Brevitas.
 
+\subsubsection{Implementacje skwantyzowanych warstw}
+
+Jako przykład skwantyzowanej warstwy poniżej przedstawiono implementacje warstwy \texttt{QuantConv1d}.
+
+\begin{minted}{python}
+class QuantConv1d(QuantWBIOL, Conv1d):
+
+    def __init__(
+            self,
+            in_channels: int,
+            out_channels: int,
+            kernel_size: Union[int, Tuple[int, int]],
+            stride: Union[int, Tuple[int, int]] = 1,
+            padding: Union[int, Tuple[int, int]] = 0,
+            dilation: Union[int, Tuple[int, int]] = 1,
+            groups: int = 1,
+            padding_mode: str = 'zeros',
+            bias: Optional[bool] = True,
+            weight_quant: Optional[WeightQuantType] = Int8WeightPerTensorFloat,
+            bias_quant: Optional[BiasQuantType] = None,
+            input_quant: Optional[ActQuantType] = None,
+            output_quant: Optional[ActQuantType] = None,
+            return_quant_tensor: bool = False,
+            device: Optional[torch.device] = None,
+            dtype: Optional[torch.dtype] = None,
+            **kwargs) -> None:
+        # avoid an init error in the super class by setting padding to 0
+        if padding_mode == 'zeros' and padding == 'same' and (stride > 1 if isinstance(
+                stride, int) else any(map(lambda x: x > 1, stride))):
+            padding = 0
+            is_same_padded_strided = True
+        else:
+            is_same_padded_strided = False
+        Conv1d.__init__(
+            self,
+            in_channels=in_channels,
+            out_channels=out_channels,
+            kernel_size=kernel_size,
+            stride=stride,
+            padding=padding,
+            dilation=dilation,
+            groups=groups,
+            padding_mode=padding_mode,
+            bias=bias,
+            device=device,
+            dtype=dtype)
+        QuantWBIOL.__init__(
+            self,
+            weight_quant=weight_quant,
+            bias_quant=bias_quant,
+            input_quant=input_quant,
+            output_quant=output_quant,
+            return_quant_tensor=return_quant_tensor,
+            **kwargs)
+        self.is_same_padded_strided = is_same_padded_strided
+\end{minted}
+
+Instancja przedstawionej powyżej klasy dziedziczy dwie klasy \texttt{Conv1d} - standardową implementacje jedno wymiarowej warstwy splotowej biblioteki PyTorch oraz \texttt{QuantWBIOL} (QuantWeightBiasInputOutputLayer) - 
+klasę odpowiadającą za kwantyzację. Domyślnie kwantyzacja przeprowadzona zostanie tylko dla wag warstwy (linie 14-17), jednak użytkownik może dodatkowo przeprowadzić kwantyzacje, wejść, wyjść oraz bias warstwy. Skwantyzowane 
+parametry warstwy są obliczane przez klasę \texttt{QuantWBIOL} (linie 42-49).
+
+\subsubsection{Właściwości kwantyzatorów}
+
+Brevitas dostarcza kilka wbudowanych typów kwantyzatorów które mogą zostać dostosowane do konkretnego przypadku poprzez modyfikacje ich parametrów. Główne typy parametrów to:
+
+\begin{itemize}
+    \item \texttt{quant\_type} - rodzaj kwantyzatora 
+    \begin{itemize}
+        \item \texttt{INT} - kwantyzuje wejściowy parametr na liczbie całkowitej o zadanej szerokości bitowej
+        \item \texttt{BINARY} - kwantyzator binarny o stałej szerokości bitowej rownej jeden.
+        \item \texttt{TERNARY} - kwantyzator trójstanowy o szerokości bitowej równej dwa.
+    \end{itemize}
+    \item \texttt{bit\_width} - ilość bitów na których skwantyzowany zostanie parametr wejściowy
+    \item \texttt{narrow\_range}
+    \item \texttt{signed} - wartość logiczna determinująca czy wartość skwantyzowana może przyjąć wartości ujemne.
+
+\end{itemize}
 
 \end{document}

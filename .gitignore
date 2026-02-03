@@ -24,3 +24,4 @@ finn-examples
 **/*.lot
 **/*.bcf-SAVE-ERROR
 main.pdf
+_minted
