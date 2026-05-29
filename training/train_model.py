@@ -1,11 +1,13 @@
-import os
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torchvision import datasets, transforms, models
+from torchvision import transforms
 from torch.utils.data import DataLoader
 from torchvision.datasets import ImageFolder
 import matplotlib.pyplot as plt
+import brevitas.nn as qnn
+from brevitas.export import export_qonnx
+
 
 
 #Dataloaders
@@ -28,7 +30,7 @@ print(f"Classes: {train_dataset.classes}")  # ['jamming', 'no_jamming']
 #CNN Model
 class SpectrogramCNN(nn.Module):
     def __init__(self):
-        super(SpectrogramCNN, self).__init__()
+        super().__init__()
         self.features = nn.Sequential(
             nn.Conv2d(1, 16, 3, padding=1),  # grayscale input
             nn.ReLU(),
@@ -41,10 +43,11 @@ class SpectrogramCNN(nn.Module):
             nn.Conv2d(32, 64, 3, padding=1),
             nn.ReLU(),
             nn.MaxPool2d(2, 2),
+            nn.AvgPool2d(kernel_size=(32,32))
         )
         self.classifier = nn.Sequential(
             nn.Flatten(),
-            nn.Linear(64 * 32 * 32, 128),
+            nn.Linear(64,128),
             nn.ReLU(),
             nn.Dropout(0.3),
             nn.Linear(128, 1),  # binary classification jamming or no_jamming
@@ -54,18 +57,85 @@ class SpectrogramCNN(nn.Module):
         x = self.features(x)
         x = self.classifier(x)
         return x
+    
+class QuantSpectrogramCNN(nn.Module):
+
+    def __init__(self):
+        super().__init__()
+        self.features = nn.Sequential(
+            qnn.QuantConv2d(
+                1,
+                16,
+                kernel_size=3,
+                padding=1,
+                bias=False,
+                weight_bit_width=8
+            ),
+
+            nn.BatchNorm2d(16),
+            qnn.QuantReLU(bit_width=8),
+            nn.MaxPool2d(kernel_size=2, stride=2),
+
+            qnn.QuantConv2d(
+                16,
+                32,
+                kernel_size=3,
+                padding=1,
+                bias=False,
+                weight_bit_width=8
+            ),
+
+            nn.BatchNorm2d(32),
+            qnn.QuantReLU(bit_width=8),
+            nn.MaxPool2d(kernel_size=2, stride=2),
+
+            qnn.QuantConv2d(
+                32,
+                64,
+                kernel_size=3,
+                padding=1,
+                bias=False,
+                weight_bit_width=8
+            ),
+
+            nn.BatchNorm2d(64),
+            qnn.QuantReLU(bit_width=8),
+            nn.MaxPool2d(kernel_size=2, stride=2),
+
+            nn.AvgPool2d(kernel_size=(32, 32))
+        )
+        self.classifier = nn.Sequential(
+            nn.Flatten(),
+            qnn.QuantLinear(
+                64,
+                128,
+                bias=True,
+                weight_bit_width=8
+            ),
+            qnn.QuantReLU(bit_width=8),
+            nn.Dropout(0.3),
+            qnn.QuantLinear(
+                128,
+                1,
+                bias=True,
+                weight_bit_width=8
+            )
+        )
+    def forward(self, x):
+        x = self.features(x)
+        x = self.classifier(x)
+        return x
 
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-model = SpectrogramCNN().to(device)
-
+model = QuantSpectrogramCNN().to(device)
 criterion = nn.BCEWithLogitsLoss()
 optimizer = optim.Adam(model.parameters(), lr = 3e-4)
 
 
 
 # training loop, validation
-num_epochs = 10
+num_epochs = 1
 train_losses = []
 val_losses = []
 train_accuracies = []
@@ -153,3 +223,10 @@ plt.legend()
 
 plt.tight_layout()
 plt.show()
+
+
+export_qonnx(
+    model,
+    torch.rand(1, 1, 256, 256),
+    export_path="quant_spectrogram_cnn.onnx"
+)

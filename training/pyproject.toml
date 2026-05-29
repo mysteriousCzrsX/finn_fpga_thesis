@@ -7,5 +7,9 @@ requires-python = "==3.10.20"
 dependencies = [
     "brevitas>=0.12.1",
     "matplotlib>=3.10.9",
-    "torchvision>=0.27.0",
+    "onnx>=1.21.0",
+    "onnxoptimizer>=0.4.2",
+    "onnxscript>=0.7.0",
+    "torch>= 1.12, <= 2.8",
+    "torchvision>=0.23.0",
 ]
