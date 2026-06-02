@@ -43,7 +43,7 @@ class SpectrogramCNN(nn.Module):
             nn.Conv2d(32, 64, 3, padding=1),
             nn.ReLU(),
             nn.MaxPool2d(2, 2),
-            nn.AvgPool2d(kernel_size=(32,32))
+            nn.AdaptiveAvgPool2d((1,1))
         )
         self.classifier = nn.Sequential(
             nn.Flatten(),
@@ -102,7 +102,7 @@ class QuantSpectrogramCNN(nn.Module):
             qnn.QuantReLU(bit_width=8),
             nn.MaxPool2d(kernel_size=2, stride=2),
 
-            nn.AvgPool2d(kernel_size=(32, 32))
+            nn.AdaptiveAvgPool2d((1,1))
         )
         self.classifier = nn.Sequential(
             nn.Flatten(),
@@ -121,14 +121,20 @@ class QuantSpectrogramCNN(nn.Module):
                 weight_bit_width=8
             )
         )
+        self.input_quant = qnn.QuantIdentity(
+            bit_width=8,
+            return_quant_tensor=True
+        )
     def forward(self, x):
+        x = self.input_quant(x)
         x = self.features(x)
         x = self.classifier(x)
         return x
 
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-model = QuantSpectrogramCNN().to(device)
+#model = QuantSpectrogramCNN().to(device)
+model = SpectrogramCNN().to(device)
 criterion = nn.BCEWithLogitsLoss()
 optimizer = optim.Adam(model.parameters(), lr = 3e-4)
 
@@ -224,9 +230,11 @@ plt.legend()
 plt.tight_layout()
 plt.show()
 
-
-export_qonnx(
-    model,
-    torch.rand(1, 1, 256, 256),
-    export_path="quant_spectrogram_cnn.onnx"
-)
+example_inputs = torch.rand(1, 1, 256, 256)
+# export_qonnx(
+#     model,
+#     torch.rand(1, 1, 256, 256),
+#     export_path="quant_spectrogram_cnn.onnx"
+# )
+onnx_program = torch.onnx.export(model, example_inputs, dynamo=True)
+onnx_program.save("spectrogram_cnn.onnx")
